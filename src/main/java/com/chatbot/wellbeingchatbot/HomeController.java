@@ -2,11 +2,16 @@ package com.chatbot.wellbeingchatbot;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+
+
+@Controller
 public class HomeController {
 
+    @GetMapping("")
     public String home(){
-        return "index";
+        return "chatbot_page";
     }
     
 }
