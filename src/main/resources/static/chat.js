@@ -4,6 +4,6 @@ function sendMessage(){
     const chatArea = document.getElementById('chat-area');
     chatArea.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
 
-    document.getElementById('userInput').value = "";
+    document.getElementById("messages")
 
 }
