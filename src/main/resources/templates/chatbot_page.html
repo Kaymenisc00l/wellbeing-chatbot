@@ -1,34 +1,37 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wellbeing Chatbot</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+
 <body>
-<link rel="stylesheet" href="/style.css">
-
-
-<div class="app">
-
+  <div class="app">
 
     <aside class="sidebar">
-        <div class="user">
-            <p><strong>Name</strong></p>
-            <small>Sign up / Login</small>
-        </div>
+      <div class="user">
+        <p><strong>Name</strong></p>
+        <small>Sign up / Login</small>
+      </div>
     </aside>
 
     <main class="chat-area">
+      <div class="welcome">
+        <h1>Welcome</h1>
+      </div>
 
-        <div class="welcome">
-            <h1>Welcome</h1>
-        </div>
+      <div class="messages" id="messages"></div>
 
-        <div class="messages" id="messages"></div>
-
-        <div class="input-area">
-            <input type="text" placeholder="Please type here..." />
-            <button>Send</button>
-        </div>
-
+      <div class="input-area">
+        <input id="userInput" type="text" placeholder="Please type here..." />
+        <button id="sendBtn" type="button">Send</button>
+      </div>
     </main>
 
-</div>
+  </div>
 
-<script src="/js/chat.js"></script>
+  <script src="/js/chat.js"></script>
 </body>
+</html>
