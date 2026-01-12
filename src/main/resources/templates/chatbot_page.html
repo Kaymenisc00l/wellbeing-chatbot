@@ -8,19 +8,32 @@
 </head>
 
 <body>
-  <div class="app">
+  <div class="app" id="app">
 
-    <aside class="sidebar">
-      <div class="user">
-        <p><strong>Name</strong></p>
-        <small>Sign up / Login</small>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="toggle-btn" id="toggleSidebar" type="button">☰</button>
+        <span class="brand">Wellbeing</span>
       </div>
-    </aside>
 
-    <main class="chat-area">
-      <div class="welcome">
-        <h1>Welcome</h1>
-      </div>
+    
+
+    <div class="user">
+      <p><strong>Name</strong></p>
+      <small>Sign up / Login</small>
+    </div>
+
+    <div class="chats">
+      <p>Previous chat 1</p>
+      <p>Previous chat 2</p>
+    </div>
+  </aside>
+
+      <main class="chat-area">
+
+        <div class="top-bar">
+            Wellbeing Chatbot
+        </div>
 
       <div class="messages" id="messages"></div>
 
@@ -28,10 +41,13 @@
         <input id="userInput" type="text" placeholder="Please type here..." />
         <button id="sendBtn" type="button">Send</button>
       </div>
+
     </main>
+
 
   </div>
 
   <script src="/js/chat.js"></script>
+
 </body>
 </html>

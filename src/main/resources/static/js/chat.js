@@ -1,3 +1,6 @@
+
+alert("chat.js loaded");
+
 function sendMessage() {
   const inputEl = document.getElementById("userInput");
   const text = inputEl.value.trim();
@@ -13,6 +16,15 @@ function sendMessage() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const toggle = document.getElementById("toggleSidebar");
+
+  toggle.addEventListener("click", () => {
+    sidebar.classList.toggle("collapsed");
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
   const sendBtn = document.getElementById("sendBtn");
   const inputEl = document.getElementById("userInput");
 
@@ -25,3 +37,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+

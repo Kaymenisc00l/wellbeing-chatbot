@@ -16,12 +16,48 @@ body {
     height: 100vh;
 }
 
-/* SIDEBAR */
+
+.sidebar-header{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+
+.toggle-btn{
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.brand{
+  color: white;
+  font-weight: 600;
+}
+
+
 .sidebar {
-    width: 260px;
-    background: #0b5ed7;
-    color: white;
-    padding: 20px;
+  width: 260px;
+  background: #0b5ed7;
+  color: white;
+  padding: 20px;
+  transition: width 0.25s ease;
+}
+
+
+.sidebar.collapsed{
+  width: 64px;
+}
+
+
+.sidebar.collapsed .brand,
+.sidebar.collapsed .user,
+.sidebar.collapsed .chats{
+  display: none;
 }
 
 .user {
@@ -29,35 +65,52 @@ body {
     padding-bottom: 15px;
 }
 
-/* CHAT AREA */
+
 .chat-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #ffffff;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f7f9fc;
+  position: relative;
 }
 
 .messages {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
+  flex: 1;
+  padding: 40px 20px;
+  max-width: 800px;
+  margin: 0 auto;          
+  overflow-y: auto;
 }
 
-/* INPUT */
+.messages p {
+  margin-bottom: 10px;
+}
+
+
 .input-area {
-    display: flex;
-    padding: 15px;
-    border-top: 1px solid #ddd;
-    background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  padding: 15px;
+
+  max-width: 800px;
+  margin: 0 auto 20px;     
+  border-top: 1px solid #ddd;
+  width : 100%;
+
 }
 
 .input-area input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    outline: none;
+  flex: 1;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
+
 
 .input-area button {
     margin-left: 10px;
@@ -71,4 +124,22 @@ body {
 
 .input-area button:hover {
     background-color: #1558b0;
+}
+
+.top-bar {
+  height: 60px;
+  background: #0b5ed7;
+  border-bottom: 1px solid #ddd;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  font-size: 18px;
+  color: #ffffff;
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
