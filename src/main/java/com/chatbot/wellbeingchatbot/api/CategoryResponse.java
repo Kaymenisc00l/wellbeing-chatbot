@@ -1,26 +1,24 @@
 package com.chatbot.wellbeingchatbot.api;
 import java.util.List;
 
-public class EmotionResponse {
+public class CategoryResponse {
 
-    private String emotion;
     private String message;
     private List<String> nextOptions;
 
-    public EmotionResponse(String emotion, String message, List<String> nextOptions){
-        this.emotion = emotion;
+    public CategoryResponse(String message, List<String> nextOptions){
         this.message = message;
         this.nextOptions = nextOptions;
+
     }
 
-    public String getEmotion(){
-        return emotion;
-    }
     public String getMessage(){
         return message;
     }
+
     public List<String> getNextOptions(){
         return nextOptions;
     }
+
     
 }
