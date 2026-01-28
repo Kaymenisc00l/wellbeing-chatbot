@@ -1,21 +1,15 @@
-package com.chatbot.wellbeingchatbot.api;
+package com.chatbot.wellbeingchatbot.guidance;
 import java.util.List;
 
-public class CategoryResponse {
+
+public class GuidanceContent {
 
     private String message;
-    private List<String> nextOptions;
     private List<String> tips;
     private List<String> links;
 
-    public CategoryResponse(
-        String message,
-        List<String> nextOptions,
-        List<String> tips,
-        List<String> links
-    ) {
+    public GuidanceContent(String message, List<String> tips, List<String> links){
         this.message = message;
-        this.nextOptions = nextOptions;
         this.tips = tips;
         this.links = links;
     }
@@ -24,18 +18,13 @@ public class CategoryResponse {
         return message;
     }
 
-    public List<String> getNextOptions(){
-        return nextOptions;
-    }
-
     public List<String> getTips(){
         return tips;
     }
 
     public List<String> getLinks(){
         return links;
+    }
 
     
-}
-
 }

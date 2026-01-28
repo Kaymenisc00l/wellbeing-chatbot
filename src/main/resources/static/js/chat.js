@@ -2,16 +2,72 @@ alert("chat.js loaded");
 
 let conversationStage = "EMOTION";
 
+
 let messages;
 let inputEl;
 let sendBtn;
+let cachedTips = [];
+let cachedLinks = [];
+
 
 // ---------------- UI ----------------
 
+
+
 function addMessage(sender, text) {
-  messages.innerHTML += `<p><strong>${sender}:</strong> ${text}</p>`;
+
+  const msg = document.createElement("div");
+  msg.classList.add("message");
+
+  if (sender === "You") {
+    msg.classList.add("user-message");
+  } else {
+    msg.classList.add("bot-message");
+  }
+
+  msg.innerText = text;
+  messages.appendChild(msg);
+
   messages.scrollTop = messages.scrollHeight;
 }
+
+function typeBotMessage(text) {
+
+  const msg = document.createElement("div");
+  msg.classList.add("message", "bot-message");
+  messages.appendChild(msg);
+
+  let index = 0;
+
+  const interval = setInterval(() => {
+    msg.textContent += text.charAt(index);
+    index++;
+
+    if (index >= text.length) {
+      clearInterval(interval);
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+  }, 25);
+}
+
+function addLinkMessage(url) {
+
+  const msg = document.createElement("div");
+  msg.classList.add("message", "bot-message");
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.textContent = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  msg.appendChild(link);
+  messages.appendChild(msg);
+
+  messages.scrollTop = messages.scrollHeight;
+}
+
 
 function showOptions(options) {
   const existing = document.getElementById("options");
@@ -33,6 +89,8 @@ function showOptions(options) {
 // ---------------- CHAT LOGIC ----------------
 
 async function handleUserInput(input) {
+  const normalised = input.toLowerCase().trim();
+
 
   addMessage("You", input);
 
@@ -47,7 +105,7 @@ async function handleUserInput(input) {
 
     const data = await res.json();
 
-    addMessage("Bot", data.message);
+    typeBotMessage(data.message);
     showOptions(data.nextOptions);
 
     conversationStage = "CATEGORY";
@@ -63,6 +121,7 @@ async function handleUserInput(input) {
       showOptions(["stressed", "anxious", "sad", "tired"]);
       return;
     }
+    
 
     const res = await fetch("/api/chat/category", {
       method: "POST",
@@ -72,25 +131,46 @@ async function handleUserInput(input) {
 
     const data = await res.json();
 
-    addMessage("Bot", data.message);
-    showOptions(data.nextOptions);
+    cachedTips = data.tips || [];
+    cachedLinks = data.links || [];
 
-    conversationStage = "GUIDANCE";
+    typeBotMessage(data.message + " What would you like to view next?");
+    showOptions(["View tips", "View support links", "Restart chat"]);
+
+    conversationStage = "CHOICE";
     return;
   }
 
-  // -------- GUIDANCE --------
-  if (conversationStage === "GUIDANCE") {
+  // -------- CHOICE --------
+ if (conversationStage === "CHOICE") {
+  const normalized = input.toLowerCase().trim();
+  
+  if (normalized.includes("tip")) {
+    cachedTips.forEach(tip => {
+      typeBotMessage("• " + tip);
+    });
 
-    if (input.toLowerCase().includes("restart")) {
-      conversationStage = "EMOTION";
-      addMessage("Bot", "Let’s start again 😊 How are you feeling?");
-      showOptions(["stressed", "anxious", "sad", "tired"]);
-      return;
-    }
-
-    addMessage("Bot", "If you'd like to restart, type or click 'Restart chat'.");
+    showOptions(["View support links", "Restart chat"]);
+    return;
   }
+
+  if (normalized.includes("support")) {
+
+    cachedLinks.forEach(link => {
+      addLinkMessage(link);
+  });
+
+    showOptions(["View tips", "Restart chat"]);
+    return;
+}
+
+  if (normalized.includes("restart")) {
+    conversationStage = "EMOTION";
+    typeBotMessage("Let’s start again 😊 How are you feeling?");
+    showOptions(["stressed", "anxious", "sad", "tired"]);
+    return;
+  }
+}
 }
 
 // ---------------- DOM LOAD ----------------
@@ -102,6 +182,13 @@ document.addEventListener("DOMContentLoaded", () => {
   sendBtn = document.getElementById("sendBtn");
 
   // initial bot message
+typeBotMessage(
+  "DISCLAIMER:" +
+  " This Chatbot provides general wellbeing information only and does not replace professional medical or mental health support. " +
+  "If you are in immediate danger, please contact emergancy services or NHS 111"
+);
+
+
   addMessage(
     "Bot",
     "Hi 👋 Type one word that best describes how you're feeling, or choose an option below."
@@ -127,4 +214,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+
+// SIDE BAR LOGIC
+const sidebar = document.getElementById("sidebar");
+const toggle = document.getElementById("toggleSidebar");
+
+toggle.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
 });
+
+
+});
+
+
