@@ -56,7 +56,8 @@ body {
 
 .sidebar.collapsed .brand,
 .sidebar.collapsed .user,
-.sidebar.collapsed .chats{
+.sidebar.collapsed .chats,
+.sidebar.collapsed .mood-history{
   display: none;
 }
 

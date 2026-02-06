@@ -1,6 +1,7 @@
 alert("chat.js loaded");
 
 let conversationStage = "EMOTION";
+let lastEmotion = "";
 
 
 let messages;
@@ -86,6 +87,27 @@ function showOptions(options) {
   messages.appendChild(optionsDiv);
 }
 
+async function loadMoodHistory(){
+    try{
+      const res = await fetch("/api/mood/all");
+      const moods = await res.json();
+
+      const moodList = document.getElementById("moodList");
+      moodList.innerHTML = "";
+
+      moods.forEach(mood =>{
+        const item = document.createElement("p");
+        item.textContent = `${mood.date} - ${mood.emotion} (${mood.category})`;
+        moodList.appendChild(item);
+
+      });
+
+    }catch (err){
+      console.error("Failed to load moods", err);
+
+    }
+  }
+
 // ---------------- CHAT LOGIC ----------------
 
 async function handleUserInput(input) {
@@ -94,52 +116,66 @@ async function handleUserInput(input) {
 
   addMessage("You", input);
 
+
   // -------- EMOTION --------
   if (conversationStage === "EMOTION") {
 
-    const res = await fetch("/api/chat/feeling", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ feeling: input })
-    });
+  lastEmotion = input;
 
-    const data = await res.json();
+  const res = await fetch("/api/chat/feeling", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ feeling: input })
+  });
 
-    typeBotMessage(data.message);
-    showOptions(data.nextOptions);
+  const data = await res.json();
 
-    conversationStage = "CATEGORY";
-    return;
-  }
+  typeBotMessage(data.message);
+  showOptions(data.nextOptions);
+
+  conversationStage = "CATEGORY";
+  return;
+}
 
   // -------- CATEGORY --------
-  if (conversationStage === "CATEGORY") {
+ if (conversationStage === "CATEGORY") {
 
-    if (input.toLowerCase().includes("restart")) {
-      conversationStage = "EMOTION";
-      addMessage("Bot", "Let’s start again 😊 How are you feeling?");
-      showOptions(["stressed", "anxious", "sad", "tired"]);
-      return;
-    }
-    
-
-    const res = await fetch("/api/chat/category", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category: input })
-    });
-
-    const data = await res.json();
-
-    cachedTips = data.tips || [];
-    cachedLinks = data.links || [];
-
-    typeBotMessage(data.message + " What would you like to view next?");
-    showOptions(["View tips", "View support links", "Restart chat"]);
-
-    conversationStage = "CHOICE";
+  if (normalised.includes("restart")) {
+    conversationStage = "EMOTION";
+    typeBotMessage("Let’s start again 😊 How are you feeling?");
+    showOptions(["stressed", "anxious", "sad", "tired"]);
     return;
   }
+
+  const res = await fetch("/api/chat/category", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: input })
+  });
+
+  const data = await res.json();
+
+  cachedTips = data.tips || [];
+  cachedLinks = data.links || [];
+
+  // ⭐ SAVE MOOD HERE
+  await fetch("/api/mood/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      emotion: lastEmotion,
+      category: input
+    })
+  });
+
+  loadMoodHistory();
+
+  typeBotMessage(data.message + " What would you like to view next?");
+  showOptions(["View tips", "View support links", "Restart chat"]);
+
+  conversationStage = "CHOICE";
+  return;
+}
 
   // -------- CHOICE --------
  if (conversationStage === "CHOICE") {
@@ -225,5 +261,8 @@ toggle.addEventListener("click", () => {
 
 
 });
+
+loadMoodHistory();
+
 
 
