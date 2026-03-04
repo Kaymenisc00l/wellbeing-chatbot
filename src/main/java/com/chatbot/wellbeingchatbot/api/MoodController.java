@@ -30,6 +30,14 @@ public class MoodController {
         return moodRepository.save(newMood);
     }
 
+
+    //Deleting Mood entry
+    @DeleteMapping("/{id}")
+    public void deleteMood(@PathVariable Long id){
+        moodRepository.deleteById(id);
+    }
+
+
     // Get all stored moods
     @GetMapping("/all")
     public List<MoodEntry> getAllMoods() {

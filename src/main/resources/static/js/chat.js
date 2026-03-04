@@ -1,268 +1,257 @@
 alert("chat.js loaded");
 
 let conversationStage = "EMOTION";
-let lastEmotion = "";
+let lastEmotion = null;
+let lastCategory = null;
 
+let messages, inputEl, sendBtn;
+let cachedTips = [], cachedLinks = [];
 
-let messages;
-let inputEl;
-let sendBtn;
-let cachedTips = [];
-let cachedLinks = [];
-
-
-// ---------------- UI ----------------
-
-
-
+// ---------- UI ----------
 function addMessage(sender, text) {
-
-  const msg = document.createElement("div");
-  msg.classList.add("message");
-
-  if (sender === "You") {
-    msg.classList.add("user-message");
-  } else {
-    msg.classList.add("bot-message");
-  }
-
-  msg.innerText = text;
-  messages.appendChild(msg);
-
-  messages.scrollTop = messages.scrollHeight;
+const msg = document.createElement("div");
+msg.classList.add("message", sender === "You" ? "user-message" : "bot-message");
+msg.innerText = text;
+messages.appendChild(msg);
+messages.scrollTop = messages.scrollHeight;
 }
 
 function typeBotMessage(text) {
+const msg = document.createElement("div");
+msg.classList.add("message", "bot-message");
+messages.appendChild(msg);
 
-  const msg = document.createElement("div");
-  msg.classList.add("message", "bot-message");
-  messages.appendChild(msg);
-
-  let index = 0;
-
-  const interval = setInterval(() => {
-    msg.textContent += text.charAt(index);
-    index++;
-
-    if (index >= text.length) {
-      clearInterval(interval);
-    }
-
-    messages.scrollTop = messages.scrollHeight;
-  }, 25);
+let index = 0;
+const interval = setInterval(() => {
+msg.textContent += text.charAt(index++);
+if (index >= text.length) clearInterval(interval);
+messages.scrollTop = messages.scrollHeight;
+}, 20);
 }
 
 function addLinkMessage(url) {
+const msg = document.createElement("div");
+msg.classList.add("message", "bot-message");
 
-  const msg = document.createElement("div");
-  msg.classList.add("message", "bot-message");
+const a = document.createElement("a");
+a.href = url;
+a.textContent = url;
+a.target = "_blank";
+a.rel = "noopener noreferrer";
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.textContent = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-
-  msg.appendChild(link);
-  messages.appendChild(msg);
-
-  messages.scrollTop = messages.scrollHeight;
+msg.appendChild(a);
+messages.appendChild(msg);
+messages.scrollTop = messages.scrollHeight;
 }
 
-
 function showOptions(options) {
-  const existing = document.getElementById("options");
-  if (existing) existing.remove();
+  const optionsBar = document.getElementById("optionsBar");
+  if (!optionsBar) return;
 
-  const optionsDiv = document.createElement("div");
-  optionsDiv.id = "options";
+  // clear old buttons
+  optionsBar.innerHTML = "";
 
   options.forEach(opt => {
     const btn = document.createElement("button");
+    btn.type = "button";
     btn.textContent = opt;
-    btn.onclick = () => handleUserInput(opt);
-    optionsDiv.appendChild(btn);
+    btn.addEventListener("click", () => handleUserInput(opt));
+    optionsBar.appendChild(btn);
   });
 
-  messages.appendChild(optionsDiv);
+  // keep view scrolled to bottom
+  messages.scrollTop = messages.scrollHeight;
 }
 
-async function loadMoodHistory(){
-    try{
-      const res = await fetch("/api/mood/all");
-      const moods = await res.json();
+// ---------- Mood ----------
+async function saveMood(emotion, category) {
+const res = await fetch("/api/mood/save", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ emotion, category })
+});
 
-      const moodList = document.getElementById("moodList");
-      moodList.innerHTML = "";
+if (!res.ok) throw new Error("Failed to save mood");
+}
 
-      moods.forEach(mood =>{
-        const item = document.createElement("p");
-        item.textContent = `${mood.date} - ${mood.emotion} (${mood.category})`;
-        moodList.appendChild(item);
+async function loadMoodHistory() {
+try {
+const moodList = document.getElementById("moodList");
+if (!moodList) return;
 
-      });
+const res = await fetch("/api/mood/all");
+const moods = await res.json();
 
-    }catch (err){
-      console.error("Failed to load moods", err);
+moodList.innerHTML = "";
 
-    }
+moods.forEach(mood => {
+const row = document.createElement("div");
+row.classList.add("mood-item");
+
+const text = document.createElement("span");
+text.textContent = `${mood.date} - ${mood.emotion} (${mood.category})`;
+
+const del = document.createElement("button");
+del.textContent = "x";
+del.classList.add("delete-mood-btn");
+
+del.onclick = async () => {
+  const id = mood.id; // or mood.moodId depending on your JSON
+  if (id == null) {
+    console.error("Mood id missing:", mood);
+    alert("Could not delete: mood id missing (check API response).");
+    return;
   }
+  await deleteMood(id);
+  await loadMoodHistory();
+};
 
-// ---------------- CHAT LOGIC ----------------
+row.appendChild(text);
+row.appendChild(del);
+moodList.appendChild(row);
+});
+} catch (e) {
+console.error("loadMoodHistory failed", e);
+}
+}
 
+async function deleteMood(id) {
+  console.log("Deleting mood id:", id);
+
+  const res = await fetch(`/api/mood/${id}`, { method: "DELETE" });
+
+  console.log("Delete status:", res.status);
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("Delete failed:", text);
+    throw new Error("Failed to delete mood");
+  }
+}
+
+// ---------- Chat ----------
 async function handleUserInput(input) {
-  const normalised = input.toLowerCase().trim();
+const normalized = input.toLowerCase().trim();
+addMessage("You", input);
 
+if (conversationStage === "EMOTION") {
+lastEmotion = input;
 
-  addMessage("You", input);
+const res = await fetch("/api/chat/feeling", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ feeling: input })
+});
 
+const data = await res.json();
+typeBotMessage(data.message);
+showOptions(data.nextOptions);
 
-  // -------- EMOTION --------
-  if (conversationStage === "EMOTION") {
-
-  lastEmotion = input;
-
-  const res = await fetch("/api/chat/feeling", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ feeling: input })
-  });
-
-  const data = await res.json();
-
-  typeBotMessage(data.message);
-  showOptions(data.nextOptions);
-
-  conversationStage = "CATEGORY";
-  return;
+conversationStage = "CATEGORY";
+return;
 }
 
-  // -------- CATEGORY --------
- if (conversationStage === "CATEGORY") {
-
-  if (normalised.includes("restart")) {
-    conversationStage = "EMOTION";
-    typeBotMessage("Let’s start again 😊 How are you feeling?");
-    showOptions(["stressed", "anxious", "sad", "tired"]);
-    return;
-  }
-
-  const res = await fetch("/api/chat/category", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ category: input })
-  });
-
-  const data = await res.json();
-
-  cachedTips = data.tips || [];
-  cachedLinks = data.links || [];
-
-  // ⭐ SAVE MOOD HERE
-  await fetch("/api/mood/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      emotion: lastEmotion,
-      category: input
-    })
-  });
-
-  loadMoodHistory();
-
-  typeBotMessage(data.message + " What would you like to view next?");
-  showOptions(["View tips", "View support links", "Restart chat"]);
-
-  conversationStage = "CHOICE";
-  return;
+if (conversationStage === "CATEGORY") {
+if (normalized.includes("restart")) {
+conversationStage = "EMOTION";
+typeBotMessage("Let’s start again 😊 How are you feeling?");
+showOptions(["stressed", "anxious", "sad", "tired"]);
+return;
 }
 
-  // -------- CHOICE --------
- if (conversationStage === "CHOICE") {
-  const normalized = input.toLowerCase().trim();
-  
-  if (normalized.includes("tip")) {
-    cachedTips.forEach(tip => {
-      typeBotMessage("• " + tip);
-    });
+lastCategory = input;
 
-    showOptions(["View support links", "Restart chat"]);
-    return;
-  }
+const res = await fetch("/api/chat/category", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ category: input })
+});
 
-  if (normalized.includes("support")) {
+const data = await res.json();
+cachedTips = data.tips || [];
+cachedLinks = data.links || [];
 
-    cachedLinks.forEach(link => {
-      addLinkMessage(link);
-  });
+typeBotMessage(data.message + " What would you like to do next?");
+showOptions(["View tips", "View support links", "Save mood", "Restart chat"]);
 
-    showOptions(["View tips", "Restart chat"]);
-    return;
+conversationStage = "CHOICE";
+return;
 }
 
-  if (normalized.includes("restart")) {
-    conversationStage = "EMOTION";
-    typeBotMessage("Let’s start again 😊 How are you feeling?");
-    showOptions(["stressed", "anxious", "sad", "tired"]);
-    return;
-  }
+if (conversationStage === "CHOICE") {
+if (normalized.includes("tip")) {
+cachedTips.forEach(t => typeBotMessage("• " + t));
+return;
+}
+
+if (normalized.includes("support")) {
+cachedLinks.forEach(l => addLinkMessage(l));
+return;
+}
+
+if (normalized.includes("save")) {
+await saveMood(lastEmotion, lastCategory);
+typeBotMessage("Saved ✅ (see Mood History)");
+await loadMoodHistory();
+return;
+}
+
+if (normalized.includes("restart")) {
+conversationStage = "EMOTION";
+typeBotMessage("Let’s start again 😊 How are you feeling?");
+showOptions(["stressed", "anxious", "sad", "tired"]);
+return;
+}
+
+typeBotMessage("Please choose one of the options.");
 }
 }
 
-// ---------------- DOM LOAD ----------------
-
+// ---------- DOM ----------
 document.addEventListener("DOMContentLoaded", () => {
+messages = document.getElementById("messages");
+inputEl = document.getElementById("userInput");
+sendBtn = document.getElementById("sendBtn");
 
-  messages = document.getElementById("messages");
-  inputEl = document.getElementById("userInput");
-  sendBtn = document.getElementById("sendBtn");
+typeBotMessage("DISCLAIMER: This is general wellbeing info only. Not medical advice. If you are in danger, contact emergency services / NHS 111.");
+addMessage("Bot", "Hi 👋 Type one word that best describes how you're feeling, or choose below.");
+showOptions(["stressed", "anxious", "sad", "tired"]);
 
-  // initial bot message
-typeBotMessage(
-  "DISCLAIMER:" +
-  " This Chatbot provides general wellbeing information only and does not replace professional medical or mental health support. " +
-  "If you are in immediate danger, please contact emergancy services or NHS 111"
-);
+sendBtn.addEventListener("click", () => {
+const text = inputEl.value.trim();
+if (!text) return;
+inputEl.value = "";
+handleUserInput(text);
+});
 
-
-  addMessage(
-    "Bot",
-    "Hi 👋 Type one word that best describes how you're feeling, or choose an option below."
-  );
-  showOptions(["stressed", "anxious", "sad", "tired"]);
-
-  // SEND BUTTON
-  sendBtn.addEventListener("click", () => {
-    const text = inputEl.value.trim();
-    inputEl.value = "";
-    if (!text) return;
-    handleUserInput(text);
-  });
-
-  // ENTER KEY
-  inputEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const text = inputEl.value.trim();
-      inputEl.value = "";
-      if (!text) return;
-      handleUserInput(text);
-    }
-  });
-
-
-// SIDE BAR LOGIC
+inputEl.addEventListener("keydown", (e) => {
+if (e.key === "Enter") {
+e.preventDefault();
+const text = inputEl.value.trim();
+if (!text) return;
+inputEl.value = "";
+handleUserInput(text);
+}
+});
 const sidebar = document.getElementById("sidebar");
 const toggle = document.getElementById("toggleSidebar");
+if (sidebar && toggle) {
+toggle.addEventListener("click", () => sidebar.classList.toggle("collapsed"));
+}
 
-toggle.addEventListener("click", () => {
-  sidebar.classList.toggle("collapsed");
+const addMoodBtn = document.getElementById("addMoodBtn");
+if (addMoodBtn) {
+addMoodBtn.addEventListener("click", async () => {
+const e = document.getElementById("manualEmotion")?.value.trim();
+const c = document.getElementById("manualCategory")?.value.trim();
+if (!e || !c) return alert("Enter both emotion + category");
+await saveMood(e, c);
+document.getElementById("manualEmotion").value = "";
+document.getElementById("manualCategory").value = "";
+await loadMoodHistory();
 });
-
-
-});
+}
 
 loadMoodHistory();
-
-
+});
 

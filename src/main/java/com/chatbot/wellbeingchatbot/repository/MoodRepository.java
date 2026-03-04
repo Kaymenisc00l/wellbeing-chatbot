@@ -1,4 +1,4 @@
-package com.chatbot.repository;
+package com.chatbot.wellbeingchatbot.repository;
 
 import com.chatbot.wellbeingchatbot.model.MoodEntry;
 import org.springframework.data.jpa.repository.JpaRepository;

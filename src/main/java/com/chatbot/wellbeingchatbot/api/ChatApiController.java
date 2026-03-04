@@ -2,7 +2,9 @@ package com.chatbot.wellbeingchatbot.api;
 
 import com.chatbot.wellbeingchatbot.guidance.GuidanceService;
 import com.chatbot.wellbeingchatbot.nlp.Emotion;
+import com.chatbot.wellbeingchatbot.nlp.ImprovedNLPService;
 import com.chatbot.wellbeingchatbot.nlp.KeywordNLPService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,43 +23,58 @@ public class ChatApiController {
         this.guidanceService = guidanceService;
     }
 
-    @PostMapping("/feeling")
-    public EmotionResponse handleFeeling(@RequestBody EmotionRequest request) {
+   @PostMapping("/feeling")
+public EmotionResponse handleFeeling(@RequestBody EmotionRequest request) {
 
-        Emotion emotion = nlpService.detectEmotion(request.getFeeling());
+Emotion emotion = nlpService.detectEmotion(request.getFeeling());
 
-        String message;
+// Handle crisis immediately (override)
+if (emotion == Emotion.CRISIS){
+String crisisMsg =
+"I’m really sorry you’re feeling this way. I can’t help with crisis situations, but you don’t have to deal with this alone.\n\n" +
+"If you are in immediate danger, call 999 now.\n" +
+"UK: Samaritans 116 123 (24/7) or text SHOUT to 85258.\n" +
+"If it’s not immediate, you can also contact NHS 111.\n\n" +
+"If you’d like, tell me whether you’re safe right now.";
+return new EmotionResponse("CRISIS", crisisMsg, List.of("Restart chat"));
+}
 
-        switch (emotion) {
-            case STRESS:
-                message = "It sounds like you're feeling stressed. What area is this mostly related to?";
-                break;
-            case ANXIETY:
-                message = "It sounds like you're feeling anxious. What area is this mostly related to?";
-                break;
-            case SADNESS:
-                message = "I’m sorry you’re feeling low. What area is this mostly related to?";
-                break;
-            case ANGER:
-                message = "It sounds like you're feeling frustrated. What area is this mostly related to?";
-                break;
-            case HAPPY:
-                message = "Glad you’re feeling good. Want to reflect on what’s going well?";
-                break;
-            case TIRED:
-                message = "It sounds like you’re feeling tired. What area is this mostly related to?";
-                break;
-            default:
-                message = "Thanks for sharing. Please type one word like: stressed, anxious, sad or tired.";
-                break;
-        }
+String message;
 
-        List<String> options = (emotion == Emotion.UNKNOWN)
-                ? List.of("stressed", "anxious", "sad", "tired")
-                : List.of("University", "Relationships", "Personal", "Work");
+switch (emotion) {
+case STRESS:
+    message = "It sounds like you're feeling stressed. What area is this mostly related to?";
+break;
+case ANXIETY:
+    message = "It sounds like you're feeling anxious. What area is this mostly related to?";
+break;
+case SADNESS:
+    message = "I’m sorry you’re feeling low. What area is this mostly related to?";
+break;
+case ANGER:
+    message = "It sounds like you're feeling frustrated. What area is this mostly related to?";
+break;
+case HAPPY:
+    message = "Glad you’re feeling good. Do Want to reflect on what’s going well?";
+break;
+case TIRED:
+    message = "It sounds like you’re feeling tired. What area is this mostly related to?";
+break;
+case CRISIS:
+    message =  "";
+break;
+default:
+    message = "Thanks for sharing. Please type one word like: stressed, anxious, sad or tired.";
+break;
+}
 
-        return new EmotionResponse(emotion.name(), message, options);
-    }
+List<String> options =
+(emotion == Emotion.UNKNOWN)
+? List.of("stressed", "anxious", "sad", "tired")
+: List.of("University", "Relationships", "Personal", "Work");
+
+return new EmotionResponse(emotion.name(), message, options);
+}
 
 
 @PostMapping("/category")

@@ -167,3 +167,45 @@ body {
   margin-right: auto;
   border-bottom-left-radius: 2px;
 }
+
+
+.mood-item{
+  display:flex;
+  justify-content:space-between;
+  align-items: center;
+  gap:8px;
+  margin:6px 0;
+}
+
+.delete-mood-btn{
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.options {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto 25px; 
+  padding: 0 20px;
+
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.options button {
+  border: none;
+  padding: 8px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #35869a;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.options button:hover {
+  background: rgba(30, 99, 139, 0.85);
+}

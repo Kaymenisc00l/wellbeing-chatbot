@@ -8,5 +8,6 @@ public enum Emotion {
     ANGER,
     HAPPY,
     TIRED,
-    UNKNOWN   
+    UNKNOWN,
+    CRISIS
 }
