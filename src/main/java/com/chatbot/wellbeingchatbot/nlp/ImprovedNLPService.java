@@ -13,7 +13,7 @@ private static final Set<String> NEGATIONS = Set.of("not", "no", "never", "dont"
 
 // crisis keywords 
 private static final Set<String> CRISIS = Set.of(
-"suicide", "kill myself", "end my life", "self harm", "self-harm", "cut myself", "overdose");
+"suicide", "kill myself", "end my life", "self harm", "self-harm", "suicidal" , "cut myself", "overdose");
 
 private final BaseLineNLPService baseline;
 

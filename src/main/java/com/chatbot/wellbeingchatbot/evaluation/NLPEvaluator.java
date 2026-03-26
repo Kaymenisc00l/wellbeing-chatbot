@@ -35,8 +35,10 @@ new NLPTestCase("I am panicking about tomorrow", Emotion.ANXIETY),
 new NLPTestCase("I am burnt out from work", Emotion.TIRED),
 new NLPTestCase("I feel on edge all the time", Emotion.ANXIETY),
 new NLPTestCase("I'm overwhelmed with everything", Emotion.STRESS),
-new NLPTestCase("I feel suicidal and I want to kill myself due to feeling low", Emotion.CRISIS)
-
+new NLPTestCase("I feel suicidal and I want to kill myself due to feeling low", Emotion.CRISIS),
+new NLPTestCase("I'm so frustrated with people at work", Emotion.ANGER),
+new NLPTestCase("I'm hate how tired I am from my relationships", Emotion.TIRED),
+new NLPTestCase("I'm so tired from everything I want to kill myself", Emotion.CRISIS)
 
 );
 
@@ -48,9 +50,11 @@ for (NLPTestCase test : dataset) {
 Emotion baseResult = baseline.detectEmotion(test.getText());
 Emotion improvedResult = improved.detectEmotion(test.getText());
 
+
 if (baseResult == test.getExpected()) baselineCorrect++;
 if (improvedResult == test.getExpected()) improvedCorrect++;
 
+System.out.println("-----------------");
 System.out.println("Input: " + test.getText());
 System.out.println("Expected: " + test.getExpected());
 System.out.println("Baseline: " + baseResult);
@@ -59,12 +63,14 @@ System.out.println("-----------------");
 }
 
 double baselineAccuracy =
-(double) baselineCorrect / dataset.size();
+((double) baselineCorrect / dataset.size())*100;
 
 double improvedAccuracy =
-(double) improvedCorrect / dataset.size();
+((double) improvedCorrect / dataset.size())*100;
 
 System.out.println("Baseline Accuracy: " + baselineAccuracy);
 System.out.println("Improved Accuracy: " + improvedAccuracy);
+System.out.println("Total Test Cases: " + dataset.size());
+System.out.println("-----------------");
 }
 }

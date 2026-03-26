@@ -3,7 +3,7 @@ package com.chatbot.wellbeingchatbot.api;
 import com.chatbot.wellbeingchatbot.guidance.GuidanceService;
 import com.chatbot.wellbeingchatbot.nlp.Emotion;
 import com.chatbot.wellbeingchatbot.nlp.ImprovedNLPService;
-import com.chatbot.wellbeingchatbot.nlp.KeywordNLPService;
+
 
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,12 @@ import java.util.List;
 @RequestMapping("/api/chat")
 public class ChatApiController {
 
-    private final KeywordNLPService nlpService;
+    private final ImprovedNLPService nlpService;
 
     private final GuidanceService guidanceService;
     
 
-    public ChatApiController(KeywordNLPService nlpService, GuidanceService guidanceService) {
+    public ChatApiController(ImprovedNLPService nlpService, GuidanceService guidanceService) {
         this.nlpService = nlpService;
         this.guidanceService = guidanceService;
     }
