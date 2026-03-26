@@ -1,4 +1,4 @@
-alert("chat.js loaded");
+
 
 let conversationStage = "EMOTION";
 let lastEmotion = null;
@@ -76,11 +76,21 @@ if (!res.ok) throw new Error("Failed to save mood");
 
 async function loadMoodHistory() {
 try {
+const res = await fetch("/api/mood/all");
+
+if (!res.ok) {
+throw new Error("Failed to load moods: " + res.status);
+}
+
+const moods = await res.json();
+
+if (!Array.isArray(moods)) {
+console.error("Expected array but got:", moods);
+return;
+}
+
 const moodList = document.getElementById("moodList");
 if (!moodList) return;
-
-const res = await fetch("/api/mood/all");
-const moods = await res.json();
 
 moodList.innerHTML = "";
 
@@ -91,27 +101,21 @@ row.classList.add("mood-item");
 const text = document.createElement("span");
 text.textContent = `${mood.date} - ${mood.emotion} (${mood.category})`;
 
-const del = document.createElement("button");
-del.textContent = "x";
-del.classList.add("delete-mood-btn");
-
-del.onclick = async () => {
-  const id = mood.id; // or mood.moodId depending on your JSON
-  if (id == null) {
-    console.error("Mood id missing:", mood);
-    alert("Could not delete: mood id missing (check API response).");
-    return;
-  }
-  await deleteMood(id);
-  await loadMoodHistory();
+const delBtn = document.createElement("button");
+delBtn.textContent = "x";
+delBtn.classList.add("delete-mood-btn");
+delBtn.onclick = async () => {
+await deleteMood(mood.id);
+await loadMoodHistory();
 };
 
 row.appendChild(text);
-row.appendChild(del);
+row.appendChild(delBtn);
 moodList.appendChild(row);
 });
-} catch (e) {
-console.error("loadMoodHistory failed", e);
+
+} catch (err) {
+console.error("loadMoodHistory failed", err);
 }
 }
 

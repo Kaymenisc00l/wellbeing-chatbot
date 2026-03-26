@@ -20,6 +20,8 @@ this.baseline = baseline;
 this.improved = improved;
 }
 
+
+//Evaluation Test Cases
 @PostConstruct
 public void evaluate() {
 
@@ -50,6 +52,9 @@ for (NLPTestCase test : dataset) {
 Emotion baseResult = baseline.detectEmotion(test.getText());
 Emotion improvedResult = improved.detectEmotion(test.getText());
 
+
+
+//Evaluation Results
 
 if (baseResult == test.getExpected()) baselineCorrect++;
 if (improvedResult == test.getExpected()) improvedCorrect++;
